@@ -1,0 +1,21 @@
+# Dependencies
+/vendor/
+
+# Uploaded images (managed by server)
+/uploads/*.jpg
+/uploads/*.jpeg
+/uploads/*.png
+/uploads/*.webp
+/uploads/*.gif
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Composer lock
+composer.lock

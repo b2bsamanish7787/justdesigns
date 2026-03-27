@@ -1,0 +1,9 @@
+# Just Designs - Uploads directory
+# This directory stores uploaded images
+# Do not delete this file
+
+# Prevent PHP execution in uploads directory
+<FilesMatch "\.php$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
