@@ -3,7 +3,23 @@
  * Home Page - Displays free images grid with Load More
  * Just Designs - index.php
  */
-$pageTitle = 'Home';
+$pageTitle       = 'Free & Premium Design Images';
+$metaDescription = 'Browse ' . SITE_NAME . ' – a curated gallery of free and premium design images for creatives. Explore illustrations, digital art, wallpapers and more.';
+$metaKeywords    = 'free design images, premium design images, graphic design gallery, digital art, creative images, wallpapers, illustrations, just designs';
+$canonicalUrl    = SITE_URL . '/';
+$ogImage         = SITE_URL . '/assets/img/og-default.jpg';
+$jsonLd = [
+    '@context' => 'https://schema.org',
+    '@type'    => 'WebSite',
+    'name'     => SITE_NAME,
+    'url'      => SITE_URL . '/',
+    'description' => 'Curated gallery of free and premium design images for creatives.',
+    'potentialAction' => [
+        '@type'       => 'SearchAction',
+        'target'      => ['@type' => 'EntryPoint', 'urlTemplate' => SITE_URL . '/?s={search_term_string}'],
+        'query-input' => 'required name=search_term_string',
+    ],
+];
 require_once __DIR__ . '/includes/header.php';
 
 // Initial load: 30 free images
@@ -58,7 +74,7 @@ $totalCount = $pdo->query('SELECT COUNT(*) FROM images')->fetchColumn();
                     <span class="badge-type badge <?= $img['image_type'] === 'premium' ? 'badge-premium' : 'badge-free' ?>">
                         <?= $img['image_type'] === 'premium' ? '<i class="fas fa-crown me-1"></i>Premium' : 'Free' ?>
                     </span>
-                    <img class="lazy" data-src="<?= e($thumb) ?>" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3C/svg%3E" alt="<?= e($img['name']) ?>">
+                    <img class="lazy" data-src="<?= e($thumb) ?>" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3C/svg%3E" alt="<?= e($img['name']) ?>" loading="lazy" decoding="async" width="400" height="300">
                 </div>
                 <div class="card-body">
                     <p class="card-title"><?= e($img['name']) ?></p>

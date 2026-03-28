@@ -389,14 +389,45 @@ body {
 
 /* ---- Responsive Tweaks ---- */
 @media (max-width: 768px) {
+    .hero-section {
+        padding: 50px 0;
+    }
     .hero-section h1 {
         font-size: 2rem;
+    }
+    .hero-section p {
+        font-size: 1rem;
     }
     .image-card .card-img-wrapper {
         height: 180px;
     }
     .auth-card {
         margin: 15px;
+    }
+    /* Better touch targets for nav links */
+    .navbar .nav-link {
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+    .subscribe-cta {
+        padding: 30px 20px;
+    }
+    /* Share buttons stack nicely on small screens */
+    .share-box .d-flex {
+        flex-direction: column;
+    }
+    .btn-share {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .image-card .card-img-wrapper {
+        height: 150px;
+    }
+    .hero-section h1 {
+        font-size: 1.6rem;
     }
 }
 
@@ -408,4 +439,71 @@ body {
 
 .lazy.loaded {
     opacity: 1;
+}
+
+/* ---- Share Buttons ---- */
+.share-box {
+    border-top: 1px solid #eee;
+    padding-top: 16px;
+}
+
+.btn-share {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: var(--transition);
+    min-height: 44px; /* accessible touch target */
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-share:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.btn-share-facebook {
+    background-color: #1877f2;
+    color: #fff;
+}
+.btn-share-facebook:hover {
+    background-color: #0d6efd;
+    color: #fff;
+}
+
+.btn-share-linkedin {
+    background-color: #0a66c2;
+    color: #fff;
+}
+.btn-share-linkedin:hover {
+    background-color: #004182;
+    color: #fff;
+}
+
+.btn-share-copy {
+    background-color: #6c757d;
+    color: #fff;
+}
+.btn-share-copy:hover {
+    background-color: #5a6268;
+    color: #fff;
+}
+
+/* ---- Ensure all interactive elements have a min touch target (mobile) ---- */
+.btn,
+.nav-link,
+.like-btn,
+.load-more-btn,
+.detail-gallery-thumb {
+    min-height: 44px;
+    min-width: 44px;
+}
+
+/* ---- Smooth image rendering ---- */
+img {
+    image-rendering: auto;
 }

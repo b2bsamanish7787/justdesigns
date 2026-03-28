@@ -248,3 +248,50 @@ $(function () {
     });
 
 });
+
+/* ============================================
+   Social Share – open in a centred popup
+============================================ */
+function openSharePopup(url) {
+    const w = 600, h = 480;
+    const left = Math.round((screen.width  - w) / 2);
+    const top  = Math.round((screen.height - h) / 2);
+    window.open(
+        url,
+        'share_popup',
+        `width=${w},height=${h},left=${left},top=${top},resizable=yes,scrollbars=yes`
+    );
+    return false; // prevent default link navigation
+}
+
+/* ============================================
+   Copy current page URL to clipboard
+============================================ */
+function copyPageLink() {
+    const url = window.location.href;
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(url).then(() => {
+            if (typeof showToast === 'function') showToast('Link copied to clipboard!', 'success');
+        }).catch(() => {
+            _fallbackCopy(url);
+        });
+    } else {
+        _fallbackCopy(url);
+    }
+}
+
+function _fallbackCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    try {
+        document.execCommand('copy');
+        if (typeof showToast === 'function') showToast('Link copied to clipboard!', 'success');
+    } catch (e) {
+        if (typeof showToast === 'function') showToast('Could not copy link.', 'warning');
+    }
+    document.body.removeChild(ta);
+}

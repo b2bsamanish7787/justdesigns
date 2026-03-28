@@ -4,7 +4,19 @@
  * Just Designs - premium.php
  * Free users see first few images, rest are blurred with subscribe prompt
  */
-$pageTitle = 'Premium Images';
+$pageTitle       = 'Premium Design Images';
+$metaDescription = 'Access exclusive, high-quality premium design images on ' . SITE_NAME . '. Subscribe for free to unlock the full collection of premium illustrations and digital art.';
+$metaKeywords    = 'premium design images, exclusive illustrations, premium digital art, subscribe design images, high quality wallpapers, just designs premium';
+$canonicalUrl    = SITE_URL . '/premium.php';
+$ogImage         = SITE_URL . '/assets/img/og-premium.jpg';
+$jsonLd = [
+    '@context'    => 'https://schema.org',
+    '@type'       => 'CollectionPage',
+    'name'        => 'Premium Design Images – ' . SITE_NAME,
+    'description' => 'Exclusive high-quality premium design images for subscribers.',
+    'url'         => SITE_URL . '/premium.php',
+    'isPartOf'    => ['@type' => 'WebSite', 'url' => SITE_URL . '/'],
+];
 require_once __DIR__ . '/includes/header.php';
 
 $allPremium = getImages($pdo, 'premium', 0, 200);
@@ -61,7 +73,7 @@ $freePreviewCount = 3; // Number of images free users can see
         <div class="image-card card h-100 blurred-card">
             <div class="card-img-wrapper">
                 <span class="badge-type badge badge-premium"><i class="fas fa-crown me-1"></i>Premium</span>
-                <img src="<?= e($thumb) ?>" alt="Premium Image">
+                <img src="<?= e($thumb) ?>" alt="Premium Image – Subscribe to view" loading="lazy" decoding="async" width="400" height="300">
                 <div class="blur-overlay">
                     <div class="lock-icon"><i class="fas fa-lock"></i></div>
                     <p>Subscribe to access</p>
@@ -75,7 +87,7 @@ $freePreviewCount = 3; // Number of images free users can see
             <div class="image-card card h-100">
                 <div class="card-img-wrapper">
                     <span class="badge-type badge badge-premium"><i class="fas fa-crown me-1"></i>Premium</span>
-                    <img class="lazy" data-src="<?= e($thumb) ?>" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3C/svg%3E" alt="<?= e($img['name']) ?>">
+                    <img class="lazy" data-src="<?= e($thumb) ?>" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3C/svg%3E" alt="<?= e($img['name']) ?>" loading="lazy" decoding="async" width="400" height="300">
                 </div>
                 <div class="card-body">
                     <p class="card-title"><?= e($img['name']) ?></p>

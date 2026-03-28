@@ -2,6 +2,16 @@
 /**
  * Site-wide HTML header
  * Just Designs - includes/header.php
+ *
+ * Pages can set these variables before require-ing this file:
+ *   $pageTitle        string  – tab/OG title prefix
+ *   $metaDescription  string  – <meta name="description"> content
+ *   $metaKeywords     string  – <meta name="keywords"> content
+ *   $canonicalUrl     string  – canonical + og:url (defaults to current page URL)
+ *   $ogImage          string  – og:image + twitter:image URL
+ *   $ogType           string  – og:type  (default: 'website')
+ *   $jsonLd           array   – PHP array to be json_encode'd as JSON-LD schema
+ *   $noIndex          bool    – true to emit noindex,nofollow
  */
 if (session_status() === PHP_SESSION_NONE) session_start();
 require_once __DIR__ . '/db.php';
@@ -9,20 +19,66 @@ require_once __DIR__ . '/functions.php';
 
 $currentPage = basename($_SERVER['PHP_SELF']);
 $flash = getFlash();
+
+/* ---- SEO defaults ---- */
+$_seoTitle       = isset($pageTitle) ? e($pageTitle) . ' | ' . SITE_NAME : SITE_NAME;
+$_seoDesc        = e($metaDescription ?? 'Just Designs – Discover stunning free & premium design images curated for creatives. Browse, download and share beautiful design inspiration.');
+$_seoKeywords    = e($metaKeywords    ?? 'design images, free designs, premium designs, creative images, graphic design, illustrations, digital art, wallpapers');
+$_ogType         = e($ogType         ?? 'website');
+$_ogImage        = e($ogImage        ?? SITE_URL . '/assets/img/og-default.jpg');
+$_canonical      = e($canonicalUrl   ?? SITE_URL . strtok($_SERVER['REQUEST_URI'], '?'));
+$_noIndex        = $noIndex ?? false;
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= isset($pageTitle) ? e($pageTitle) . ' | ' : '' ?><?= SITE_NAME ?></title>
-    <!-- Bootstrap 5 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title><?= $_seoTitle ?></title>
+
+    <!-- ===== SEO Core ===== -->
+    <meta name="description" content="<?= $_seoDesc ?>">
+    <meta name="keywords"    content="<?= $_seoKeywords ?>">
+    <meta name="robots"      content="<?= $_noIndex ? 'noindex,nofollow' : 'index,follow' ?>">
+    <meta name="author"      content="<?= SITE_NAME ?>">
+    <link rel="canonical"    href="<?= $_canonical ?>">
+
+    <!-- ===== Open Graph (Facebook / LinkedIn) ===== -->
+    <meta property="og:type"        content="<?= $_ogType ?>">
+    <meta property="og:url"         content="<?= $_canonical ?>">
+    <meta property="og:title"       content="<?= $_seoTitle ?>">
+    <meta property="og:description" content="<?= $_seoDesc ?>">
+    <meta property="og:image"       content="<?= $_ogImage ?>">
+    <meta property="og:image:width"  content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name"   content="<?= e(SITE_NAME) ?>">
+    <meta property="og:locale"      content="en_US">
+
+    <!-- ===== Twitter Card ===== -->
+    <meta name="twitter:card"        content="summary_large_image">
+    <meta name="twitter:title"       content="<?= $_seoTitle ?>">
+    <meta name="twitter:description" content="<?= $_seoDesc ?>">
+    <meta name="twitter:image"       content="<?= $_ogImage ?>">
+
+    <!-- ===== JSON-LD Structured Data ===== -->
+    <?php if (!empty($jsonLd)): ?>
+    <script type="application/ld+json"><?= json_encode($jsonLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?></script>
+    <?php endif; ?>
+
+    <!-- ===== Performance: Resource Hints ===== -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net"       crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com"   crossorigin>
+    <link rel="preconnect" href="https://code.jquery.com"        crossorigin>
+    <link rel="dns-prefetch" href="https://picsum.photos">
+
+    <!-- ===== Bootstrap 5 CSS ===== -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <!-- Font Awesome -->
+    <!-- ===== Font Awesome 6 ===== -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Custom CSS -->
+    <!-- ===== Custom CSS ===== -->
     <link rel="stylesheet" href="<?= SITE_URL ?>/assets/css/style.css">
-    <!-- Site config for JavaScript -->
+
+    <!-- ===== Site config exposed to JavaScript ===== -->
     <script>const SITE_URL = <?= json_encode(SITE_URL) ?>;</script>
 </head>
 <body>

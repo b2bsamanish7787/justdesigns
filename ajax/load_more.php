@@ -38,7 +38,7 @@ foreach ($images as $img) {
     $html .= '<span class="badge-type badge ' . $badgeClass . '">' . $badgeLabel . '</span>';
     $html .= '<img class="lazy" data-src="' . htmlspecialchars($thumb, ENT_QUOTES) . '" ';
     $html .= 'src="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 1 1\'%3E%3C/svg%3E" ';
-    $html .= 'alt="' . htmlspecialchars($img['name'], ENT_QUOTES) . '">';
+    $html .= 'alt="' . htmlspecialchars($img['name'], ENT_QUOTES) . '" loading="lazy" decoding="async" width="400" height="300">';
     $html .= '</div>';
     $html .= '<div class="card-body">';
     $html .= '<p class="card-title">' . htmlspecialchars($img['name'], ENT_QUOTES) . '</p>';
