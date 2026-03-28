@@ -152,6 +152,10 @@ $csrfToken = getCsrfToken();
                            class="btn btn-sm btn-outline-info" title="View">
                             <i class="fas fa-eye"></i>
                         </a>
+                        <a href="<?= SITE_URL ?>/admin/edit-image.php?id=<?= $img['id'] ?>"
+                           class="btn btn-sm btn-outline-secondary ms-1" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </a>
                         <a href="<?= SITE_URL ?>/admin/manage-images.php?delete=<?= $img['id'] ?>&csrf_token=<?= $csrfToken ?>"
                            class="btn btn-sm btn-outline-danger btn-delete-confirm ms-1" title="Delete">
                             <i class="fas fa-trash"></i>

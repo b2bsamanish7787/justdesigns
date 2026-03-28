@@ -58,7 +58,7 @@ $adminFlash = getFlash();
         <a class="nav-link <?= $adminCurrentPage === 'upload.php' ? 'active' : '' ?>" href="<?= SITE_URL ?>/admin/upload.php">
             <i class="fas fa-upload"></i>Upload Images
         </a>
-        <a class="nav-link <?= $adminCurrentPage === 'manage-images.php' ? 'active' : '' ?>" href="<?= SITE_URL ?>/admin/manage-images.php">
+        <a class="nav-link <?= in_array($adminCurrentPage, ['manage-images.php', 'edit-image.php']) ? 'active' : '' ?>" href="<?= SITE_URL ?>/admin/manage-images.php">
             <i class="fas fa-images"></i>Manage Images
         </a>
         <a class="nav-link <?= $adminCurrentPage === 'users.php' ? 'active' : '' ?>" href="<?= SITE_URL ?>/admin/users.php">
