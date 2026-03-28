@@ -45,6 +45,52 @@ function e(string $str): string {
 }
 
 /**
+ * Generate a URL-safe slug from a string.
+ * e.g. "Abstract Blue Design!" → "abstract-blue-design"
+ */
+function generateSlug(string $text): string {
+    $text = mb_strtolower(trim($text));
+    // Replace accented characters with ASCII equivalents
+    $text = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $text) ?: $text;
+    // Replace non-alphanumeric with hyphens
+    $text = preg_replace('/[^a-z0-9]+/', '-', $text);
+    // Remove leading/trailing hyphens
+    return trim($text, '-');
+}
+
+/**
+ * Return a unique slug for an image, appending the ID if a collision exists.
+ * Pass $excludeId when editing an existing record (to exclude itself from the check).
+ */
+function uniqueImageSlug(PDO $pdo, string $base, int $excludeId = 0): string {
+    $slug      = $base ?: 'image';
+    $candidate = $slug;
+    $suffix    = 2;
+    do {
+        $stmt = $pdo->prepare('SELECT id FROM images WHERE slug = ? AND id != ?');
+        $stmt->execute([$candidate, $excludeId]);
+        if (!$stmt->fetch()) {
+            return $candidate;
+        }
+        $candidate = $slug . '-' . $suffix++;
+    } while (true);
+}
+
+/**
+ * Look up an image by its SEO slug.
+ */
+function getImageBySlug(PDO $pdo, string $slug): ?array {
+    $stmt = $pdo->prepare(
+        'SELECT i.*,
+                (SELECT COUNT(*) FROM likes WHERE image_id = i.id) AS like_count
+         FROM images i WHERE i.slug = ?'
+    );
+    $stmt->execute([$slug]);
+    $row = $stmt->fetch();
+    return $row ?: null;
+}
+
+/**
  * Generate a random password
  */
 function generateTempPassword(int $length = 10): string {

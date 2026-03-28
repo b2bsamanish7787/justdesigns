@@ -21,6 +21,17 @@ if (!$image) {
     redirect(SITE_URL . '/');
 }
 
+// If accessed via the old ?id= URL and the image has a slug, redirect permanently.
+// The router at design/index.php sets $_SERVER['JUST_DESIGNS_FROM_SLUG'] = '1' before
+// requiring this file so we never redirect slug-routed requests.
+if (!empty($image['slug'])
+    && isset($_GET['id'])
+    && empty($_SERVER['JUST_DESIGNS_FROM_SLUG'])
+) {
+    header('Location: ' . SITE_URL . '/design/' . rawurlencode($image['slug']), true, 301);
+    exit;
+}
+
 // Premium check: non-subscribers can't view premium detail
 if ($image['image_type'] === 'premium' && !isSubscriber()) {
     setFlash('warning', 'This is a premium image. Please subscribe to view it.');
@@ -50,15 +61,31 @@ $relatedStmt->execute([$image['image_type'], $imageId]);
 $related = $relatedStmt->fetchAll();
 
 // ===== SEO variables =====
-$pageTitle       = $image['name'];
-$_descBase       = !empty($image['description'])
-    ? strip_tags($image['description'])
-    : $image['name'] . ' – ' . ucfirst($image['image_type']) . ' design image on ' . SITE_NAME;
+$pageTitle       = !empty($image['seo_title']) ? $image['seo_title'] : $image['name'];
+$_descBase       = !empty($image['seo_description'])
+    ? $image['seo_description']
+    : (!empty($image['description'])
+        ? strip_tags($image['description'])
+        : $image['name'] . ' – ' . ucfirst($image['image_type']) . ' design image on ' . SITE_NAME);
 $metaDescription = mb_strimwidth($_descBase, 0, 160, '…');
-$metaKeywords    = e($image['name']) . ', ' . $image['image_type'] . ' design, design images, ' . SITE_NAME . ', graphic design, illustration';
-$canonicalUrl    = SITE_URL . '/image-detail.php?id=' . $imageId;
-$ogType          = 'article';
-$ogImage         = $primaryUrl;
+
+// Build keywords from tags field first, then fall back to generated list
+if (!empty($image['tags'])) {
+    $tagList      = implode(', ', array_map('trim', explode(',', $image['tags'])));
+    $metaKeywords = $tagList . ', design images, ' . SITE_NAME;
+} else {
+    $metaKeywords = e($image['name']) . ', ' . $image['image_type'] . ' design, design images, ' . SITE_NAME . ', graphic design, illustration';
+}
+
+// Canonical: prefer slug-based URL when a slug exists
+$canonicalUrl = !empty($image['slug'])
+    ? SITE_URL . '/design/' . $image['slug']
+    : SITE_URL . '/image-detail.php?id=' . $imageId;
+$ogType   = 'article';
+$ogImage  = $primaryUrl;
+
+// Image alt text: use dedicated field, fall back to name
+$imgAlt = !empty($image['alt_text']) ? $image['alt_text'] : $image['name'];
 
 // JSON-LD – ImageObject schema
 $jsonLd = [
@@ -71,8 +98,20 @@ $jsonLd = [
     'thumbnailUrl'=> $primaryUrl,
     'datePublished' => date('c', strtotime($image['created_at'])),
     'author'      => ['@type' => 'Organization', 'name' => SITE_NAME, 'url' => SITE_URL . '/'],
+    'creator'     => ['@type' => 'Organization', 'name' => SITE_NAME, 'url' => SITE_URL . '/'],
+    'creditText'  => SITE_NAME,
     'isPartOf'    => ['@type' => 'WebSite', 'url' => SITE_URL . '/'],
+    'license'     => SITE_URL . '/terms-of-use',
+    'acquireLicensePage' => $image['image_type'] === 'premium'
+        ? SITE_URL . '/premium.php'
+        : SITE_URL . '/register.php',
 ];
+if (!empty($image['tags'])) {
+    $jsonLd['keywords'] = array_values(array_filter(array_map('trim', explode(',', $image['tags']))));
+}
+if (!empty($image['alt_text'])) {
+    $jsonLd['alternateName'] = $image['alt_text'];
+}
 if (!empty($image['dimensions'])) {
     // e.g. "1920x1080"
     $dims = explode('x', strtolower($image['dimensions']));
@@ -109,7 +148,7 @@ require_once __DIR__ . '/includes/header.php';
         <div class="text-center bg-dark rounded-3 p-2 mb-3">
             <img id="primary-detail-img"
                  src="<?= e($primaryUrl) ?>"
-                 alt="<?= e($image['name']) ?>"
+                 alt="<?= e($imgAlt) ?>"
                  class="detail-primary-img img-fluid"
                  fetchpriority="high"
                  decoding="auto">

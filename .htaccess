@@ -54,6 +54,8 @@ AddDefaultCharset UTF-8
     RewriteRule ^ assets/img/og-default.php [L]
     RewriteCond %{REQUEST_URI} ^.*/assets/img/og-premium\.jpg$
     RewriteRule ^ assets/img/og-default.php [L]
+    # Slug-based image detail URLs: /design/{slug}
+    RewriteRule ^design/([a-z0-9\-]+)/?$ design/index.php?slug=$1 [L,QSA]
 </IfModule>
 
 # ---- Protect hidden files (Apache 2.4 syntax) ----
