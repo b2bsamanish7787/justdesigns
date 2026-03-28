@@ -4,6 +4,12 @@
  * Just Designs - premium.php
  * Free users see first few images, rest are blurred with subscribe prompt
  */
+
+// Load db + functions first so SITE_NAME / SITE_URL constants are available
+// for the SEO variables below.  header.php will skip re-loading via require_once.
+require_once __DIR__ . '/includes/db.php';
+require_once __DIR__ . '/includes/functions.php';
+
 $pageTitle       = 'Premium Design Images';
 $metaDescription = 'Access exclusive, high-quality premium design images on ' . SITE_NAME . '. Subscribe for free to unlock the full collection of premium illustrations and digital art.';
 $metaKeywords    = 'premium design images, exclusive illustrations, premium digital art, subscribe design images, high quality wallpapers, just designs premium';

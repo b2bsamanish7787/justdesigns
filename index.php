@@ -3,6 +3,12 @@
  * Home Page - Displays free images grid with Load More
  * Just Designs - index.php
  */
+
+// Load db + functions first so SITE_NAME / SITE_URL constants are available
+// for the SEO variables below.  header.php will skip re-loading via require_once.
+require_once __DIR__ . '/includes/db.php';
+require_once __DIR__ . '/includes/functions.php';
+
 $pageTitle       = 'Free & Premium Design Images';
 $metaDescription = 'Browse ' . SITE_NAME . ' – a curated gallery of free and premium design images for creatives. Explore illustrations, digital art, wallpapers and more.';
 $metaKeywords    = 'free design images, premium design images, graphic design gallery, digital art, creative images, wallpapers, illustrations, just designs';

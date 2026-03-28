@@ -43,17 +43,26 @@ AddDefaultCharset UTF-8
     Header always set Referrer-Policy "strict-origin-when-cross-origin"
 </IfModule>
 
-# ---- OG default image served from PHP ----
+# ---- Rewrite rules for SEO / dynamic assets ----
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    # Serve robots.txt dynamically so SITE_URL is correct
-    RewriteRule ^robots\.txt$ robots.php [L,T=application/x-httpd-php]
-    RewriteRule ^assets/img/og-default\.jpg$ assets/img/og-default.php [L,T=application/x-httpd-php]
-    RewriteRule ^assets/img/og-premium\.jpg$  assets/img/og-default.php [L,T=application/x-httpd-php]
+    # robots.txt served dynamically so SITE_URL constant is always correct
+    RewriteCond %{REQUEST_URI} ^/robots\.txt$
+    RewriteRule ^ robots.php [L]
+    # OG images served via PHP (SVG placeholder)
+    RewriteCond %{REQUEST_URI} ^.*/assets/img/og-default\.jpg$
+    RewriteRule ^ assets/img/og-default.php [L]
+    RewriteCond %{REQUEST_URI} ^.*/assets/img/og-premium\.jpg$
+    RewriteRule ^ assets/img/og-default.php [L]
 </IfModule>
 
-# ---- Protect sensitive directories ----
+# ---- Protect hidden files (Apache 2.4 syntax) ----
 <FilesMatch "^\.">
-    Order allow,deny
-    Deny from all
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
 </FilesMatch>

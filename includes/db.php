@@ -12,7 +12,16 @@ define('DB_CHARSET', 'utf8mb4');
 
 // Site settings
 define('SITE_NAME', 'Just Designs');
-define('SITE_URL', 'http://localhost/justdesigns');
+// Auto-detect base URL so the same code works locally and on production.
+// Override by setting the JUST_DESIGNS_URL environment variable if needed.
+define('SITE_URL', (function () {
+    if (getenv('JUST_DESIGNS_URL')) {
+        return rtrim(getenv('JUST_DESIGNS_URL'), '/');
+    }
+    $scheme = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $host   = $_SERVER['HTTP_HOST'] ?? 'just-designs.com';
+    return $scheme . '://' . $host;
+})());
 define('MAIL_FROM', 'noreply@' . ($_SERVER['HTTP_HOST'] ?? 'justdesigns.com'));
 define('UPLOAD_DIR', __DIR__ . '/../uploads/');
 define('UPLOAD_URL', SITE_URL . '/uploads/');
