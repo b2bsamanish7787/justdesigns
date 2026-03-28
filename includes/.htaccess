@@ -1,0 +1,5 @@
+# Protect the includes directory - no direct access
+<FilesMatch "\.php$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>

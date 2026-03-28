@@ -1,0 +1,70 @@
+# Just Designs - Root .htaccess
+# Performance, security & SEO configuration
+
+Options -Indexes
+
+# ---- Character Set ----
+AddDefaultCharset UTF-8
+
+# ---- Compression (mod_deflate) ----
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css
+    AddOutputFilterByType DEFLATE application/javascript application/json
+    AddOutputFilterByType DEFLATE image/svg+xml
+</IfModule>
+
+# ---- Browser Caching (mod_expires) ----
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css                  "access plus 1 month"
+    ExpiresByType application/javascript    "access plus 1 month"
+    ExpiresByType image/jpeg                "access plus 3 months"
+    ExpiresByType image/png                 "access plus 3 months"
+    ExpiresByType image/webp                "access plus 3 months"
+    ExpiresByType image/svg+xml             "access plus 1 month"
+    ExpiresByType image/gif                 "access plus 3 months"
+    ExpiresByType text/html                 "access plus 0 seconds"
+</IfModule>
+
+# ---- Cache-Control Headers ----
+<IfModule mod_headers.c>
+    # Long cache for versioned assets
+    <FilesMatch "\.(css|js|jpg|jpeg|png|webp|gif|svg|ico|woff|woff2)$">
+        Header set Cache-Control "public, max-age=2592000, immutable"
+    </FilesMatch>
+    # No cache for PHP pages
+    <FilesMatch "\.php$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+    </FilesMatch>
+    # Security headers
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# ---- Rewrite rules for SEO / dynamic assets ----
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    # robots.txt served dynamically so SITE_URL constant is always correct
+    RewriteCond %{REQUEST_URI} ^/robots\.txt$
+    RewriteRule ^ robots.php [L]
+    # OG images served via PHP (SVG placeholder)
+    RewriteCond %{REQUEST_URI} ^.*/assets/img/og-default\.jpg$
+    RewriteRule ^ assets/img/og-default.php [L]
+    RewriteCond %{REQUEST_URI} ^.*/assets/img/og-premium\.jpg$
+    RewriteRule ^ assets/img/og-default.php [L]
+    # Slug-based image detail URLs: /design/{slug}
+    RewriteRule ^design/([a-z0-9\-]+)/?$ design/index.php?slug=$1 [L,QSA]
+</IfModule>
+
+# ---- Protect hidden files (Apache 2.4 syntax) ----
+<FilesMatch "^\.">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
