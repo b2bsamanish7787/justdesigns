@@ -208,7 +208,7 @@ $csrfToken     = getCsrfToken();
 <div class="d-flex align-items-center justify-content-between mb-4">
     <h4 class="fw-bold mb-0">
         <i class="fas fa-edit me-2"></i>Edit Image
-        <small class="text-muted fs-6 ms-2">#<?= $imageId ?></small>
+        <small class="text-muted fs-6 ms-2">#<?= $imageId ?> &mdash; <?= e($image['name']) ?></small>
     </h4>
     <div class="d-flex gap-2">
         <a href="<?= SITE_URL ?>/image-detail.php?id=<?= $imageId ?>" target="_blank"
@@ -230,11 +230,150 @@ $csrfToken     = getCsrfToken();
 <?php endif; ?>
 
 <!-- ================================================================
-     SECTION 1: Metadata + Add More Files
+     SECTION 1: Uploaded Images (shown first so admin sees files immediately)
+================================================================ -->
+<?php
+// Determine the effective file count, including legacy primary_image when image_files is empty
+$hasLegacyPrimary = empty($existingFiles) && !empty($image['primary_image']);
+$totalFileCount   = count($existingFiles);
+?>
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
+        <h6 class="mb-0 fw-bold">
+            <i class="fas fa-images me-2 text-primary"></i>
+            Uploaded Images
+            <span class="badge <?= $totalFileCount > 0 ? 'bg-primary' : 'bg-secondary' ?> ms-2">
+                <?= $hasLegacyPrimary ? 1 : $totalFileCount ?>
+            </span>
+        </h6>
+        <?php if ($totalFileCount > 1): ?>
+        <span class="text-muted small">
+            <i class="fas fa-star text-warning me-1"></i>Click <strong>Set Primary</strong> to change the thumbnail
+        </span>
+        <?php endif; ?>
+    </div>
+    <div class="card-body p-4">
+
+        <?php if (empty($existingFiles) && !$hasLegacyPrimary): ?>
+        <!-- No files at all -->
+        <div class="text-center py-4">
+            <i class="fas fa-image fa-3x text-muted mb-3"></i>
+            <p class="text-muted mb-1">No images uploaded for this entry yet.</p>
+            <p class="text-muted small">Use the <strong>Add More Images</strong> section below to upload files.</p>
+        </div>
+
+        <?php elseif ($hasLegacyPrimary): ?>
+        <!-- Legacy: primary_image URL stored directly on the images row, no image_files records -->
+        <div class="alert alert-info py-2 mb-3">
+            <i class="fas fa-info-circle me-1"></i>
+            This entry uses a legacy image URL. Upload a file below to replace it with a managed file.
+        </div>
+        <div class="row g-3">
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="card h-100 border border-primary border-2 position-relative">
+                    <span class="position-absolute top-0 start-0 badge bg-primary m-2" style="z-index:1">
+                        <i class="fas fa-star me-1"></i>Primary
+                    </span>
+                    <img src="<?= e($image['primary_image']) ?>"
+                         alt="Primary image"
+                         class="card-img-top"
+                         style="height:150px;object-fit:cover;"
+                         onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                    <div class="d-none align-items-center justify-content-center bg-light"
+                         style="height:150px;color:#aaa;flex-direction:column">
+                        <i class="fas fa-image fa-2x mb-2"></i>
+                        <small>Preview unavailable</small>
+                    </div>
+                    <div class="card-body p-2">
+                        <p class="small text-muted mb-0 text-truncate" title="<?= e($image['primary_image']) ?>">
+                            <?= e($image['primary_image']) ?>
+                        </p>
+                        <p class="small text-muted mt-1 mb-0">
+                            <em>External / legacy URL</em>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <?php else: ?>
+        <!-- Normal: records exist in image_files -->
+        <div class="row g-3">
+            <?php foreach ($existingFiles as $file): ?>
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="card h-100 border <?= $file['is_primary'] ? 'border-primary border-2' : 'border-light' ?> position-relative">
+                    <?php if ($file['is_primary']): ?>
+                    <span class="position-absolute top-0 start-0 badge bg-primary m-2" style="z-index:1">
+                        <i class="fas fa-star me-1"></i>Primary
+                    </span>
+                    <?php endif; ?>
+
+                    <img src="<?= e(UPLOAD_URL . $file['filename']) ?>"
+                         alt="Image <?= (int)$file['id'] ?>"
+                         class="card-img-top"
+                         style="height:160px;object-fit:cover;cursor:pointer;"
+                         title="Click to view full size"
+                         onclick="window.open('<?= e(UPLOAD_URL . $file['filename']) ?>','_blank')"
+                         onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                    <div class="d-none align-items-center justify-content-center bg-light"
+                         style="height:160px;color:#aaa;flex-direction:column">
+                        <i class="fas fa-image fa-2x mb-2"></i>
+                        <small>No preview</small>
+                    </div>
+
+                    <div class="card-body p-2 d-flex flex-column gap-2">
+                        <p class="small text-muted mb-0 text-truncate fw-semibold" title="<?= e($file['filename']) ?>">
+                            <i class="fas fa-file-image me-1 text-secondary"></i><?= e($file['filename']) ?>
+                        </p>
+                        <p class="small text-muted mb-0">
+                            <i class="fas fa-calendar-alt me-1"></i>
+                            Added <?= date('M j, Y', strtotime($file['created_at'])) ?>
+                        </p>
+
+                        <!-- Set Primary -->
+                        <?php if (!$file['is_primary']): ?>
+                        <form method="POST" action="?id=<?= $imageId ?>">
+                            <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
+                            <input type="hidden" name="action"     value="set_primary">
+                            <input type="hidden" name="file_id"    value="<?= (int)$file['id'] ?>">
+                            <button type="submit" class="btn btn-outline-primary btn-sm w-100">
+                                <i class="fas fa-star me-1"></i>Set as Primary
+                            </button>
+                        </form>
+                        <?php else: ?>
+                        <span class="btn btn-primary btn-sm w-100 disabled">
+                            <i class="fas fa-check me-1"></i>Current Primary
+                        </span>
+                        <?php endif; ?>
+
+                        <!-- Remove File -->
+                        <form method="POST" action="?id=<?= $imageId ?>"
+                              onsubmit="return confirm('Remove this image permanently? This cannot be undone.');">
+                            <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
+                            <input type="hidden" name="action"     value="delete_file">
+                            <input type="hidden" name="file_id"    value="<?= (int)$file['id'] ?>">
+                            <button type="submit"
+                                    class="btn btn-outline-danger btn-sm w-100"
+                                    <?= count($existingFiles) <= 1 ? 'disabled title="Upload a replacement before removing the last image"' : '' ?>>
+                                <i class="fas fa-trash me-1"></i>Remove
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
+
+    </div>
+</div>
+
+<!-- ================================================================
+     SECTION 2: Edit Metadata + Add More Files
 ================================================================ -->
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-header bg-white py-3">
-        <h6 class="mb-0 fw-bold"><i class="fas fa-info-circle me-2 text-primary"></i>Image Details</h6>
+        <h6 class="mb-0 fw-bold"><i class="fas fa-pen me-2 text-primary"></i>Edit Details &amp; Add More Images</h6>
     </div>
     <div class="card-body p-4">
         <form method="POST" action="?id=<?= $imageId ?>" enctype="multipart/form-data" class="needs-validation" novalidate>
@@ -286,12 +425,14 @@ $csrfToken     = getCsrfToken();
                 <!-- Add More Files -->
                 <div class="col-12">
                     <label class="form-label fw-semibold">
-                        Add More Images <span class="text-muted">(jpg, png, webp | max 5 MB each)</span>
+                        <i class="fas fa-plus-circle me-1 text-success"></i>
+                        Add More Images
+                        <span class="text-muted fw-normal">(jpg, png, webp | max 5 MB each)</span>
                     </label>
                     <input type="file" name="images[]" id="more-images" class="form-control"
                            multiple accept=".jpg,.jpeg,.png,.webp">
                     <div class="form-text">
-                        Select one or more images to add to this set. Leave empty to keep current files unchanged.
+                        Pick one or more files to append to this image set. Leave empty to keep existing files unchanged.
                     </div>
                 </div>
 
@@ -313,78 +454,6 @@ $csrfToken     = getCsrfToken();
     </div>
 </div>
 
-<!-- ================================================================
-     SECTION 2: Existing Files
-================================================================ -->
-<div class="card border-0 shadow-sm">
-    <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
-        <h6 class="mb-0 fw-bold">
-            <i class="fas fa-photo-video me-2 text-primary"></i>
-            Current Files
-            <span class="badge bg-secondary ms-2"><?= count($existingFiles) ?></span>
-        </h6>
-        <span class="text-muted small">Click <strong>Set Primary</strong> to change the thumbnail</span>
-    </div>
-    <div class="card-body p-4">
-        <?php if (empty($existingFiles)): ?>
-            <p class="text-muted text-center py-3">No files uploaded yet. Use the form above to add images.</p>
-        <?php else: ?>
-        <div class="row g-3">
-            <?php foreach ($existingFiles as $file): ?>
-            <div class="col-6 col-md-4 col-lg-3">
-                <div class="card h-100 border <?= $file['is_primary'] ? 'border-primary border-2' : '' ?> position-relative">
-                    <?php if ($file['is_primary']): ?>
-                    <span class="position-absolute top-0 start-0 badge bg-primary m-2" style="z-index:1">
-                        <i class="fas fa-star me-1"></i>Primary
-                    </span>
-                    <?php endif; ?>
-
-                    <img src="<?= e(UPLOAD_URL . $file['filename']) ?>"
-                         alt="File <?= (int)$file['id'] ?>"
-                         class="card-img-top"
-                         style="height:150px;object-fit:cover;"
-                         onerror="this.src='https://via.placeholder.com/300x200?text=No+Preview'">
-
-                    <div class="card-body p-2 d-flex flex-column gap-2">
-                        <p class="small text-muted mb-0 text-truncate" title="<?= e($file['filename']) ?>">
-                            <?= e($file['filename']) ?>
-                        </p>
-                        <p class="small text-muted mb-0">
-                            Added <?= date('M j, Y', strtotime($file['created_at'])) ?>
-                        </p>
-
-                        <!-- Set Primary -->
-                        <?php if (!$file['is_primary']): ?>
-                        <form method="POST" action="?id=<?= $imageId ?>">
-                            <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
-                            <input type="hidden" name="action"     value="set_primary">
-                            <input type="hidden" name="file_id"    value="<?= (int)$file['id'] ?>">
-                            <button type="submit" class="btn btn-outline-primary btn-sm w-100">
-                                <i class="fas fa-star me-1"></i>Set Primary
-                            </button>
-                        </form>
-                        <?php endif; ?>
-
-                        <!-- Delete File -->
-                        <form method="POST" action="?id=<?= $imageId ?>"
-                              onsubmit="return confirm('Remove this file? This cannot be undone.');">
-                            <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
-                            <input type="hidden" name="action"     value="delete_file">
-                            <input type="hidden" name="file_id"    value="<?= (int)$file['id'] ?>">
-                            <button type="submit" class="btn btn-outline-danger btn-sm w-100"
-                                <?= count($existingFiles) <= 1 ? 'disabled title="Cannot remove the only file"' : '' ?>>
-                                <i class="fas fa-trash me-1"></i>Remove
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-            <?php endforeach; ?>
-        </div>
-        <?php endif; ?>
-    </div>
-</div>
-
 <script>
 // Live preview of newly selected files before upload
 document.getElementById('more-images').addEventListener('change', function () {
@@ -398,7 +467,7 @@ document.getElementById('more-images').addEventListener('change', function () {
             wrapper.style.cssText = 'position:relative;display:inline-block;';
             wrapper.innerHTML =
                 '<img src="' + e.target.result + '" ' +
-                'style="width:100px;height:80px;object-fit:cover;border-radius:6px;border:2px solid #dee2e6">' +
+                'style="width:100px;height:80px;object-fit:cover;border-radius:6px;border:2px dashed #0d6efd">' +
                 '<small class="d-block text-muted text-truncate mt-1" style="max-width:100px">' +
                 file.name + '</small>';
             preview.appendChild(wrapper);
